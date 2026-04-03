@@ -267,14 +267,16 @@ document.addEventListener('DOMContentLoaded', function() {
   g('devis-btn-print').addEventListener('click', function() {
     var jsPDF = window.jspdf.jsPDF;
 
-    var p1v = fv('devis-p1price') * iv('devis-p1qty');
-    var p2v = fv('devis-p2price') * iv('devis-p2qty');
-    var p3v = fv('devis-p3price') * iv('devis-p3qty');
+    var p1price = fv('devis-p1price'), p1qty = iv('devis-p1qty');
+    var p2price = fv('devis-p2price'), p2qty = iv('devis-p2qty');
+    var p3price = fv('devis-p3price'), p3qty = iv('devis-p3qty');
+    var p1v = p1price * p1qty;
+    var p2v = p2price * p2qty;
+    var p3v = p3price * p3qty;
     var n1  = g('devis-name1').value || 'Produit 1';
     var n2  = g('devis-name2').value || 'Produit 2';
     var n3  = g('devis-name3').value || 'Produit 3';
-    var q1  = iv('devis-p1qty'), q2 = iv('devis-p2qty'), q3 = iv('devis-p3qty');
-    var qtyTotal   = q1 + q2 + q3;
+    var qtyTotal   = p1qty + p2qty + p3qty;
     var persoQty   = iv('devis-persoQty');
     var list       = currentTab === 'flocage' ? FLOCAGE : BRODERIE;
     var persoPrice = selectedPerso !== null ? list[selectedPerso].price : 0;
@@ -284,13 +286,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var promo      = getPromo(qtyTotal);
     var discount   = before * promo.pct / 100;
     var total      = before - discount;
+    var totalHT    = total / 1.20;
+    var tva        = total - totalHT;
     var f          = function(n) { return n.toFixed(2) + ' EUR'; };
     var date       = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
     var heure      = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
     var W = 80;
-    var H = 400;
-    var doc = new jsPDF({ unit: 'mm', format: [W, H], orientation: 'portrait' });
+    var doc = new jsPDF({ unit: 'mm', format: [W, 400], orientation: 'portrait' });
     var y = 8;
     var margin = 4;
     var cx = W / 2;
@@ -326,10 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
       y += size * 0.38 + 1.8;
     }
 
-    // TVA 20%
-    var totalHT = total / 1.20;
-    var tva     = total - totalHT;
-
     // EN-TETE
     tc('UNICHEF', 13, true);
     tc('WECREATE', 8, false);
@@ -344,9 +343,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // PRODUITS
     tl('PRODUITS', 8, true);
     y += 1; sep(true);
-    if (q1 > 0) { tl(n1 + ' x' + q1, 8, false); tr2('  @ ' + fv('devis-p1price').toFixed(2) + ' EUR/u', f(p1v), 7, false); y += 0.5; }
-    if (q2 > 0) { tl(n2 + ' x' + q2, 8, false); tr2('  @ ' + fv('devis-p2price').toFixed(2) + ' EUR/u', f(p2v), 7, false); y += 0.5; }
-    if (q3 > 0) { tl(n3 + ' x' + q3, 8, false); tr2('  @ ' + fv('devis-p3price').toFixed(2) + ' EUR/u', f(p3v), 7, false); y += 0.5; }
+    if (p1qty > 0) { tl(n1 + ' x' + p1qty, 8, false); tr2('  @ ' + p1price.toFixed(2) + ' EUR/u', f(p1v), 7, false); y += 0.5; }
+    if (p2qty > 0) { tl(n2 + ' x' + p2qty, 8, false); tr2('  @ ' + p2price.toFixed(2) + ' EUR/u', f(p2v), 7, false); y += 0.5; }
+    if (p3qty > 0) { tl(n3 + ' x' + p3qty, 8, false); tr2('  @ ' + p3price.toFixed(2) + ' EUR/u', f(p3v), 7, false); y += 0.5; }
     if (qtyTotal === 0) { tl('Aucun produit renseigne', 7, false); }
     sep(true);
 
@@ -371,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     y += 1; sep(false);
 
-    // TOTAL + TVA
+    // TVA + TOTAL
     y += 1;
     tr2('Total HT', f(totalHT), 8, false);
     tr2('TVA (20%)', f(tva), 8, false);
@@ -385,17 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
     y += 1; sep(false);
     tc('Merci de votre confiance !', 8, true);
     tc('www.unichef.fr', 7, false);
-    y += 6;
 
-    // Rogner la hauteur exactement au contenu
-    var finalDoc = new jsPDF({ unit: 'mm', format: [W, y], orientation: 'portrait' });
-    var pageData = doc.output('arraybuffer');
-    // Re-dessiner sur page a hauteur exacte
-    finalDoc = doc;
-    finalDoc.internal.pageSize.height = y;
-
-    // Ouvrir dans un nouvel onglet
-    var pdfBlob = finalDoc.output('blob');
+    // Ouvrir dans nouvel onglet
+    var pdfBlob = doc.output('blob');
     var pdfUrl = URL.createObjectURL(pdfBlob);
     window.open(pdfUrl, '_blank');
   });
