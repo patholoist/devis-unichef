@@ -6,7 +6,6 @@
 <title>Calculateur de devis — Unichef</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { overflow: hidden; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f6fb; color: #111; }
 .devis-wrap { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
 .devis-wrap h2 { font-size: 22px; font-weight: 500; margin-bottom: 4px; color: #111; }
@@ -132,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Auto-resize : envoie la hauteur au parent toutes les 300ms
   function sendHeight() {
-    var h = document.getElementById('devis-main').scrollHeight + 100;
+    var h = document.getElementById('devis-main').scrollHeight + 40;
     window.parent.postMessage({ height: h }, '*');
   }
   setInterval(sendHeight, 300);
