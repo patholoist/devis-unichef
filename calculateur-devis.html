@@ -6,7 +6,8 @@
 <title>Calculateur de devis — Unichef</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f6fb; color: #111; min-height: 100vh; }
+html, body { overflow: hidden; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f6fb; color: #111; }
 .devis-wrap { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
 .devis-wrap h2 { font-size: 22px; font-weight: 500; margin-bottom: 4px; color: #111; }
 .devis-subtitle { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
@@ -50,7 +51,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </style>
 </head>
 <body>
-<div class="devis-wrap">
+<div class="devis-wrap" id="devis-main">
   <h2>Calculateur de devis</h2>
   <p class="devis-subtitle">Produits + personnalisation broderie / flocage</p>
 
@@ -128,6 +129,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
+  // Auto-resize : envoie la hauteur au parent toutes les 300ms
+  function sendHeight() {
+    var h = document.getElementById('devis-main').scrollHeight + 40;
+    window.parent.postMessage({ height: h }, '*');
+  }
+  setInterval(sendHeight, 300);
+  sendHeight();
+
   var FLOCAGE = [
     { name: 'Logo Coeur', price: 6 },
     { name: 'Logo Centre', price: 8 },
@@ -177,20 +187,18 @@ document.addEventListener('DOMContentLoaded', function() {
         var div = document.createElement('div');
         div.style.cssText = 'border:' + (sel ? '2px solid #e07a20' : '1px solid #f0c898') + ';border-radius:8px;padding:10px 12px;cursor:pointer;background:' + (sel ? '#fddcb0' : '#fffaf4') + ';box-sizing:border-box;margin:0;';
         div.setAttribute('data-idx', idx);
-
         var nameEl = document.createElement('p');
         nameEl.style.cssText = 'font-size:13px;font-weight:500;color:' + (sel ? '#7a3a00' : '#5a3000') + ';margin:0;padding:0;line-height:1.4;font-family:inherit;';
         nameEl.textContent = (currentTab === 'flocage' ? 'Flocage' : 'Broderie') + ' - ' + o.name;
-
         var priceEl = document.createElement('p');
         priceEl.style.cssText = 'font-size:12px;color:' + (sel ? '#a05010' : '#b07040') + ';margin:3px 0 0 0;padding:0;line-height:1.4;font-family:inherit;';
         priceEl.textContent = o.price.toFixed(2).replace('.', ',') + ' \u20ac / pi\u00e8ce';
-
         div.appendChild(nameEl);
         div.appendChild(priceEl);
         container.appendChild(div);
       })(i);
     }
+    sendHeight();
   }
 
   g('devis-perso-options').addEventListener('click', function(e) {
@@ -198,9 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
     while (t && t !== this) {
       if (t.hasAttribute('data-idx')) {
         selectedPerso = parseInt(t.getAttribute('data-idx'), 10);
-        renderOptions();
-        calc();
-        return;
+        renderOptions(); calc(); return;
       }
       t = t.parentNode;
     }
@@ -309,21 +315,15 @@ document.addEventListener('DOMContentLoaded', function() {
       '  unichef.fr@gmail.com\n' +
       '  01 40 95 04 10 | unichef.fr\n' +
       '================================\n' +
-      '  DEVIS\n' +
-      '  Date : ' + date + '  ' + heure + '\n' +
+      '  DEVIS — ' + date + ' ' + heure + '\n' +
       '================================\n' +
-      '  PRODUITS\n' +
+      '  PRODUITS\n' + sep() + '\n' + prodLines +
       sep() + '\n' +
-      prodLines +
-      sep() + '\n' +
-      '  PERSONNALISATION\n' +
-      sep() + '\n' +
+      '  PERSONNALISATION\n' + sep() + '\n' +
       '  ' + persoLabel + '\n' +
       '  Qte : ' + persoQty + ' piece(s)\n' +
       '  ' + line('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--') + '\n' +
-      sep() + '\n' +
-      '  RECAPITULATIF\n' +
-      sep() + '\n' +
+      sep() + '\n  RECAPITULATIF\n' + sep() + '\n' +
       '  ' + line('Qte totale', qtyTotal + ' piece(s)') + '\n' +
       '  ' + line('Sous-total', f(before)) + '\n' +
       (promo.pct > 0 ? '  ' + line('Remise -' + promo.pct + '%', '- ' + f(discount)) + '\n' : '  ' + line('Remise', 'Aucune') + '\n') +
@@ -331,28 +331,18 @@ document.addEventListener('DOMContentLoaded', function() {
       sep() + '\n' +
       '  ' + line('** TOTAL TTC **', f(total)) + '\n' +
       '================================\n' +
-      '  FR58910338581\n' +
-      '  91033858100010\n' +
+      '  FR58910338581 | 91033858100010\n' +
       '================================\n' +
       '   Merci de votre confiance !\n' +
       '        www.unichef.fr\n' +
       '================================\n';
 
     var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis ' + date + '</title>'
-      + '<style>'
-      + '@page{size:80mm auto;margin:4mm;}'
-      + '*{box-sizing:border-box;margin:0;padding:0;}'
-      + 'body{width:80mm;font-family:"Courier New",Courier,monospace;font-size:11px;background:#fff;color:#000;white-space:pre;line-height:1.6;}'
-      + '</style>'
+      + '<style>@page{size:80mm auto;margin:4mm;}*{box-sizing:border-box;margin:0;padding:0;}body{width:80mm;font-family:"Courier New",Courier,monospace;font-size:11px;background:#fff;color:#000;white-space:pre;line-height:1.6;}</style>'
       + '</head><body>' + ticket + '</body></html>';
 
     var win = window.open('', '_blank', 'width=420,height=750');
-    if (win) {
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      setTimeout(function() { win.print(); }, 500);
-    }
+    if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(function() { win.print(); }, 500); }
   });
 
   var inputs = document.querySelectorAll('#devis-p1price,#devis-p1qty,#devis-p2price,#devis-p2qty,#devis-p3price,#devis-p3qty,#devis-persoQty,#devis-name1,#devis-name2,#devis-name3');
