@@ -121,8 +121,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 
   <div style="margin-top:1.5rem;margin-bottom:2.5rem;text-align:center;">
-    <button class="devis-btn-print" id="devis-btn-print">⬇ Télécharger le devis PDF</button>
-    <p class="devis-btn-hint">Un ticket de caisse au format PDF sera téléchargé</p>
+    <button class="devis-btn-print" id="devis-btn-print">🖨 Imprimer le devis</button>
+    <p class="devis-btn-hint">Le devis s'ouvrira en PDF dans un nouvel onglet</p>
   </div>
 </div>
 
@@ -288,10 +288,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var date       = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
     var heure      = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
-    // Page 80mm large, hauteur auto
+    // Page 80mm large, hauteur genereuse
     var W = 80;
-    var doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' });
-    var y = 6;
+    var doc = new jsPDF({ unit: 'mm', format: [W, 300], orientation: 'portrait' });
+    var y = 10;
     var margin = 4;
     var center = W / 2;
 
@@ -391,9 +391,12 @@ document.addEventListener('DOMContentLoaded', function() {
     y = tc('www.unichef.fr', y, 7);
 
     // Ajuster hauteur page
-    doc.internal.pageSize.height = y + 8;
+    doc.internal.pageSize.height = y + 10;
 
-    doc.save('devis-unichef-' + date.replace(/\//g, '-') + '.pdf');
+    // Ouvrir dans un nouvel onglet
+    var pdfBlob = doc.output('blob');
+    var pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
   });
 
   var inputs = document.querySelectorAll('#devis-p1price,#devis-p1qty,#devis-p2price,#devis-p2qty,#devis-p3price,#devis-p3qty,#devis-persoQty,#devis-name1,#devis-name2,#devis-name3');
