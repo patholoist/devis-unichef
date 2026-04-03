@@ -122,7 +122,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
   <div style="margin-top:1.5rem;margin-bottom:2.5rem;text-align:center;">
     <button class="devis-btn-print" id="devis-btn-print">🖨 Imprimer le devis</button>
-    <p class="devis-btn-hint">Le devis s'ouvrira en PDF dans un nouvel onglet</p>
+    <p class="devis-btn-hint">Le ticket s'ouvrira en PDF dans un nouvel onglet</p>
   </div>
 </div>
 
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     container.innerHTML = '';
     for (var i = 0; i < list.length; i++) {
       (function(idx) {
-        var o   = list[idx];
+        var o = list[idx];
         var sel = selectedPerso === idx;
         var div = document.createElement('div');
         div.style.cssText = 'border:' + (sel ? '2px solid #e07a20' : '1px solid #f0c898') + ';border-radius:8px;padding:10px 12px;cursor:pointer;background:' + (sel ? '#fddcb0' : '#fffaf4') + ';box-sizing:border-box;margin:0;';
@@ -263,19 +263,19 @@ document.addEventListener('DOMContentLoaded', function() {
     g('devis-final-total').textContent = before > 0 ? fmt(total) : '\u2014';
   }
 
-  // ---- GENERATION PDF TICKET ----
   g('devis-btn-print').addEventListener('click', function() {
     var jsPDF = window.jspdf.jsPDF;
 
+    // Lire toutes les valeurs
     var p1price = fv('devis-p1price'), p1qty = iv('devis-p1qty');
     var p2price = fv('devis-p2price'), p2qty = iv('devis-p2qty');
     var p3price = fv('devis-p3price'), p3qty = iv('devis-p3qty');
     var p1v = p1price * p1qty;
     var p2v = p2price * p2qty;
     var p3v = p3price * p3qty;
-    var n1  = g('devis-name1').value || 'Produit 1';
-    var n2  = g('devis-name2').value || 'Produit 2';
-    var n3  = g('devis-name3').value || 'Produit 3';
+    var n1 = g('devis-name1').value || 'Produit 1';
+    var n2 = g('devis-name2').value || 'Produit 2';
+    var n3 = g('devis-name3').value || 'Produit 3';
     var qtyTotal   = p1qty + p2qty + p3qty;
     var persoQty   = iv('devis-persoQty');
     var list       = currentTab === 'flocage' ? FLOCAGE : BRODERIE;
@@ -288,45 +288,41 @@ document.addEventListener('DOMContentLoaded', function() {
     var total      = before - discount;
     var totalHT    = total / 1.20;
     var tva        = total - totalHT;
-    var f          = function(n) { return n.toFixed(2) + ' EUR'; };
-    var date       = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
-    var heure      = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    var f = function(n) { return n.toFixed(2) + ' EUR'; };
+    var date  = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
+    var heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
     var W = 80;
-    var doc = new jsPDF({ unit: 'mm', format: [W, 400], orientation: 'portrait' });
+    var doc = new jsPDF({ unit: 'mm', format: [W, 250], orientation: 'portrait' });
     var y = 8;
-    var margin = 4;
+    var mg = 4;
     var cx = W / 2;
 
     function sep(dash) {
-      doc.setDrawColor(160);
-      doc.setLineWidth(0.3);
-      if (dash) { doc.setLineDashPattern([1,1], 0); } else { doc.setLineDashPattern([], 0); }
-      doc.line(margin, y, W - margin, y);
+      doc.setDrawColor(160); doc.setLineWidth(0.3);
+      if (dash) doc.setLineDashPattern([1,1], 0); else doc.setLineDashPattern([], 0);
+      doc.line(mg, y, W - mg, y);
       doc.setLineDashPattern([], 0);
       y += 3;
     }
-    function tc(txt, size, bold) {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      doc.setTextColor(0);
-      doc.text(txt, cx, y, { align: 'center' });
-      y += size * 0.38 + 1.8;
+    function tc(t, sz, b) {
+      doc.setFont('helvetica', b ? 'bold' : 'normal');
+      doc.setFontSize(sz); doc.setTextColor(0);
+      doc.text(t, cx, y, {align:'center'});
+      y += sz * 0.38 + 1.8;
     }
-    function tl(txt, size, bold) {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      doc.setTextColor(0);
-      doc.text(txt, margin, y);
-      y += size * 0.38 + 1.8;
+    function tl(t, sz, b) {
+      doc.setFont('helvetica', b ? 'bold' : 'normal');
+      doc.setFontSize(sz); doc.setTextColor(0);
+      doc.text(t, mg, y);
+      y += sz * 0.38 + 1.8;
     }
-    function tr2(left, right, size, bold) {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      doc.setTextColor(0);
-      doc.text(left, margin, y);
-      doc.text(right, W - margin, y, { align: 'right' });
-      y += size * 0.38 + 1.8;
+    function tr(l, r, sz, b) {
+      doc.setFont('helvetica', b ? 'bold' : 'normal');
+      doc.setFontSize(sz); doc.setTextColor(0);
+      doc.text(l, mg, y);
+      doc.text(r, W - mg, y, {align:'right'});
+      y += sz * 0.38 + 1.8;
     }
 
     // EN-TETE
@@ -341,42 +337,38 @@ document.addEventListener('DOMContentLoaded', function() {
     y += 1; sep(false);
 
     // PRODUITS
-    tl('PRODUITS', 8, true);
-    y += 1; sep(true);
-    if (p1qty > 0) { tl(n1 + ' x' + p1qty, 8, false); tr2('  @ ' + p1price.toFixed(2) + ' EUR/u', f(p1v), 7, false); y += 0.5; }
-    if (p2qty > 0) { tl(n2 + ' x' + p2qty, 8, false); tr2('  @ ' + p2price.toFixed(2) + ' EUR/u', f(p2v), 7, false); y += 0.5; }
-    if (p3qty > 0) { tl(n3 + ' x' + p3qty, 8, false); tr2('  @ ' + p3price.toFixed(2) + ' EUR/u', f(p3v), 7, false); y += 0.5; }
-    if (qtyTotal === 0) { tl('Aucun produit renseigne', 7, false); }
+    tl('PRODUITS', 8, true); y += 1; sep(true);
+    if (p1qty > 0) { tl(n1 + ' x' + p1qty, 8, false); tr('  @ ' + p1price.toFixed(2) + ' EUR/u', f(p1v), 7, false); y += 0.5; }
+    if (p2qty > 0) { tl(n2 + ' x' + p2qty, 8, false); tr('  @ ' + p2price.toFixed(2) + ' EUR/u', f(p2v), 7, false); y += 0.5; }
+    if (p3qty > 0) { tl(n3 + ' x' + p3qty, 8, false); tr('  @ ' + p3price.toFixed(2) + ' EUR/u', f(p3v), 7, false); y += 0.5; }
+    if (qtyTotal === 0) tl('Aucun produit renseigne', 7, false);
     sep(true);
 
     // PERSONNALISATION
-    tl('PERSONNALISATION', 8, true);
-    y += 1; sep(true);
-    tr2('Type', persoLabel, 7, false);
-    tr2('Quantite', persoQty + ' piece(s)', 7, false);
-    tr2('Sous-total personnalisation', persoTotal > 0 ? f(persoTotal) : '--', 7, false);
+    tl('PERSONNALISATION', 8, true); y += 1; sep(true);
+    tr('Type', persoLabel, 7, false);
+    tr('Quantite', persoQty + ' piece(s)', 7, false);
+    tr('Sous-total personnalisation', persoTotal > 0 ? f(persoTotal) : '--', 7, false);
     sep(true);
 
     // RECAPITULATIF
-    tl('RECAPITULATIF', 8, true);
-    y += 1; sep(true);
-    tr2('Quantite totale', qtyTotal + ' piece(s)', 7, false);
-    tr2('Sous-total', f(before), 7, false);
+    tl('RECAPITULATIF', 8, true); y += 1; sep(true);
+    tr('Quantite totale', qtyTotal + ' piece(s)', 7, false);
+    tr('Sous-total', f(before), 7, false);
     if (promo.pct > 0) {
-      tr2('Remise -' + promo.pct + '%', '- ' + f(discount), 7, false);
-      tr2('Economie realisee', f(discount), 7, false);
+      tr('Remise -' + promo.pct + '%', '- ' + f(discount), 7, false);
+      tr('Economie realisee', f(discount), 7, false);
     } else {
-      tr2('Remise', 'Aucune', 7, false);
+      tr('Remise', 'Aucune', 7, false);
     }
     y += 1; sep(false);
 
     // TVA + TOTAL
     y += 1;
-    tr2('Total HT', f(totalHT), 8, false);
-    tr2('TVA (20%)', f(tva), 8, false);
-    y += 1; sep(false);
-    y += 1;
-    tr2('** TOTAL TTC **', f(total), 11, true);
+    tr('Total HT', f(totalHT), 8, false);
+    tr('TVA (20%)', f(tva), 8, false);
+    y += 1; sep(false); y += 1;
+    tr('** TOTAL TTC **', f(total), 11, true);
     y += 2; sep(false);
 
     // PIED
@@ -385,16 +377,13 @@ document.addEventListener('DOMContentLoaded', function() {
     tc('Merci de votre confiance !', 8, true);
     tc('www.unichef.fr', 7, false);
 
-    // Ouvrir dans nouvel onglet
-    var pdfBlob = doc.output('blob');
-    var pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl, '_blank');
+    var blob = doc.output('blob');
+    var url  = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   });
 
   var inputs = document.querySelectorAll('#devis-p1price,#devis-p1qty,#devis-p2price,#devis-p2qty,#devis-p3price,#devis-p3qty,#devis-persoQty,#devis-name1,#devis-name2,#devis-name3');
-  for (var i = 0; i < inputs.length; i++) {
-    inputs[i].addEventListener('input', calc);
-  }
+  for (var i = 0; i < inputs.length; i++) inputs[i].addEventListener('input', calc);
 
   renderOptions();
   calc();
