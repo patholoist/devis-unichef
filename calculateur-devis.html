@@ -50,7 +50,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </style>
 </head>
 <body>
-<div class="devis-wrap" id="devis-main">
+<div class="devis-wrap">
   <h2>Calculateur de devis</h2>
   <p class="devis-subtitle">Produits + personnalisation broderie / flocage</p>
 
@@ -121,22 +121,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 
   <div style="margin-top:1.5rem;margin-bottom:2.5rem;text-align:center;">
-    <button class="devis-btn-print" id="devis-btn-print">🖨 Imprimer le devis</button>
-    <p class="devis-btn-hint">Un ticket de caisse s'ouvrira — faites Ctrl+P pour imprimer</p>
+    <button class="devis-btn-print" id="devis-btn-print">⬇ Télécharger le devis PDF</button>
+    <p class="devis-btn-hint">Un ticket de caisse au format PDF sera téléchargé</p>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
-  // Auto-resize : envoie la hauteur au parent toutes les 300ms
-  function sendHeight() {
-    var h = document.getElementById('devis-main').scrollHeight + 40;
-    window.parent.postMessage({ height: h }, '*');
-  }
-  setInterval(sendHeight, 300);
-  sendHeight();
-
   var FLOCAGE = [
     { name: 'Logo Coeur', price: 6 },
     { name: 'Logo Centre', price: 8 },
@@ -166,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function g(id)  { return document.getElementById(id); }
   function fv(id) { return parseFloat(g(id).value) || 0; }
   function iv(id) { return parseInt(g(id).value)   || 0; }
-  function fmt(n) { return n.toFixed(2).replace('.', ',') + ' \u20ac'; }
+  function fmt(n) { return n.toFixed(2).replace('.', ',') + ' EUR'; }
 
   function getPromo(qty) {
     for (var i = 0; i < PROMO.length; i++) {
@@ -191,13 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
         nameEl.textContent = (currentTab === 'flocage' ? 'Flocage' : 'Broderie') + ' - ' + o.name;
         var priceEl = document.createElement('p');
         priceEl.style.cssText = 'font-size:12px;color:' + (sel ? '#a05010' : '#b07040') + ';margin:3px 0 0 0;padding:0;line-height:1.4;font-family:inherit;';
-        priceEl.textContent = o.price.toFixed(2).replace('.', ',') + ' \u20ac / pi\u00e8ce';
+        priceEl.textContent = o.price.toFixed(2).replace('.', ',') + ' EUR / piece';
         div.appendChild(nameEl);
         div.appendChild(priceEl);
         container.appendChild(div);
       })(i);
     }
-    sendHeight();
   }
 
   g('devis-perso-options').addEventListener('click', function(e) {
@@ -256,13 +247,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     g('devis-sub-perso').textContent = persoTotal > 0 ? fmt(persoTotal) : '\u2014';
-    g('devis-qty-total').textContent = qtyTotal > 0 ? qtyTotal + ' pi\u00e8ce(s)' : '\u2014';
+    g('devis-qty-total').textContent = qtyTotal > 0 ? qtyTotal + ' piece(s)' : '\u2014';
 
     if (promo.pct > 0) {
       g('devis-promo-label').innerHTML = 'Remise <span class="devis-promo-badge">-' + promo.pct + '%</span>';
       g('devis-promo-val').textContent = '- ' + fmt(discount);
       g('devis-before-discount').textContent = fmt(before);
-      g('devis-saving-line').textContent = '\u00c9conomie : ' + fmt(discount);
+      g('devis-saving-line').textContent = 'Economie : ' + fmt(discount);
     } else {
       g('devis-promo-label').innerHTML = 'Remise';
       g('devis-promo-val').textContent = qtyTotal > 0 ? 'Aucune' : '\u2014';
@@ -272,76 +263,137 @@ document.addEventListener('DOMContentLoaded', function() {
     g('devis-final-total').textContent = before > 0 ? fmt(total) : '\u2014';
   }
 
+  // ---- GENERATION PDF TICKET ----
   g('devis-btn-print').addEventListener('click', function() {
-    var p1 = fv('devis-p1price') * iv('devis-p1qty');
-    var p2 = fv('devis-p2price') * iv('devis-p2qty');
-    var p3 = fv('devis-p3price') * iv('devis-p3qty');
-    var n1 = g('devis-name1').value || 'Produit 1';
-    var n2 = g('devis-name2').value || 'Produit 2';
-    var n3 = g('devis-name3').value || 'Produit 3';
-    var qtyTotal   = iv('devis-p1qty') + iv('devis-p2qty') + iv('devis-p3qty');
+    var jsPDF = window.jspdf.jsPDF;
+
+    var p1v = fv('devis-p1price') * iv('devis-p1qty');
+    var p2v = fv('devis-p2price') * iv('devis-p2qty');
+    var p3v = fv('devis-p3price') * iv('devis-p3qty');
+    var n1  = g('devis-name1').value || 'Produit 1';
+    var n2  = g('devis-name2').value || 'Produit 2';
+    var n3  = g('devis-name3').value || 'Produit 3';
+    var q1  = iv('devis-p1qty'), q2 = iv('devis-p2qty'), q3 = iv('devis-p3qty');
+    var qtyTotal   = q1 + q2 + q3;
     var persoQty   = iv('devis-persoQty');
     var list       = currentTab === 'flocage' ? FLOCAGE : BRODERIE;
     var persoPrice = selectedPerso !== null ? list[selectedPerso].price : 0;
     var persoLabel = selectedPerso !== null ? (currentTab === 'flocage' ? 'Flocage' : 'Broderie') + ' - ' + list[selectedPerso].name : 'Non selectionne';
     var persoTotal = persoPrice * persoQty;
-    var before     = p1 + p2 + p3 + persoTotal;
+    var before     = p1v + p2v + p3v + persoTotal;
     var promo      = getPromo(qtyTotal);
     var discount   = before * promo.pct / 100;
     var total      = before - discount;
-    var f          = function(n) { return n.toFixed(2).replace('.', ',') + ' EUR'; };
+    var f          = function(n) { return n.toFixed(2) + ' EUR'; };
     var date       = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
     var heure      = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
-    function line(l, r) {
-      var pad = 32 - l.length - r.length;
-      if (pad < 1) pad = 1;
-      return l + Array(pad + 1).join('.') + r;
+    // Page 80mm large, hauteur auto
+    var W = 80;
+    var doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' });
+    var y = 6;
+    var margin = 4;
+    var center = W / 2;
+
+    function sep(y) {
+      doc.setDrawColor(180);
+      doc.setLineWidth(0.2);
+      doc.line(margin, y, W - margin, y);
+      return y + 3;
     }
-    function sep() { return Array(33).join('-'); }
+    function sepDash(y) {
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.2);
+      doc.setLineDashPattern([1, 1], 0);
+      doc.line(margin, y, W - margin, y);
+      doc.setLineDashPattern([], 0);
+      return y + 3;
+    }
+    function tc(txt, y, size, bold) {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size || 8);
+      doc.text(txt, center, y, { align: 'center' });
+      return y + (size || 8) * 0.4 + 1.5;
+    }
+    function tl(txt, y, size, bold) {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size || 8);
+      doc.text(txt, margin, y);
+      return y + (size || 8) * 0.4 + 1.5;
+    }
+    function tr2(left, right, y, size, bold) {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size || 8);
+      doc.text(left, margin, y);
+      doc.text(right, W - margin, y, { align: 'right' });
+      return y + (size || 8) * 0.4 + 1.5;
+    }
 
-    var prodLines = '';
-    if (iv('devis-p1qty') > 0) prodLines += '  ' + n1 + ' x' + iv('devis-p1qty') + '\n    ' + line('@ ' + fv('devis-p1price').toFixed(2).replace('.',',') + ' EUR/u', f(p1)) + '\n';
-    if (iv('devis-p2qty') > 0) prodLines += '  ' + n2 + ' x' + iv('devis-p2qty') + '\n    ' + line('@ ' + fv('devis-p2price').toFixed(2).replace('.',',') + ' EUR/u', f(p2)) + '\n';
-    if (iv('devis-p3qty') > 0) prodLines += '  ' + n3 + ' x' + iv('devis-p3qty') + '\n    ' + line('@ ' + fv('devis-p3price').toFixed(2).replace('.',',') + ' EUR/u', f(p3)) + '\n';
-    if (qtyTotal === 0) prodLines = '  Aucun produit renseigne\n';
+    // EN-TETE
+    y = tc('UNICHEF', y, 13, true);
+    y = tc('WECREATE', y, 8, false);
+    y = tc("7 avenue de l'Europe, 92310 France", y, 7);
+    y = tc('unichef.fr@gmail.com | 01 40 95 04 10', y, 7);
+    y = tc('www.unichef.fr', y, 7);
+    y += 2;
+    y = sep(y);
 
-    var ticket =
-      '================================\n' +
-      '           UNICHEF\n' +
-      '          WECREATE\n' +
-      '  7 av. de l\'Europe - 92310\n' +
-      '  unichef.fr@gmail.com\n' +
-      '  01 40 95 04 10 | unichef.fr\n' +
-      '================================\n' +
-      '  DEVIS — ' + date + ' ' + heure + '\n' +
-      '================================\n' +
-      '  PRODUITS\n' + sep() + '\n' + prodLines +
-      sep() + '\n' +
-      '  PERSONNALISATION\n' + sep() + '\n' +
-      '  ' + persoLabel + '\n' +
-      '  Qte : ' + persoQty + ' piece(s)\n' +
-      '  ' + line('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--') + '\n' +
-      sep() + '\n  RECAPITULATIF\n' + sep() + '\n' +
-      '  ' + line('Qte totale', qtyTotal + ' piece(s)') + '\n' +
-      '  ' + line('Sous-total', f(before)) + '\n' +
-      (promo.pct > 0 ? '  ' + line('Remise -' + promo.pct + '%', '- ' + f(discount)) + '\n' : '  ' + line('Remise', 'Aucune') + '\n') +
-      (promo.pct > 0 ? '  ' + line('Economie', f(discount)) + '\n' : '') +
-      sep() + '\n' +
-      '  ' + line('** TOTAL TTC **', f(total)) + '\n' +
-      '================================\n' +
-      '  FR58910338581 | 91033858100010\n' +
-      '================================\n' +
-      '   Merci de votre confiance !\n' +
-      '        www.unichef.fr\n' +
-      '================================\n';
+    y = tc('DEVIS', y, 11, true);
+    y = tc(date + '  ' + heure, y, 7);
+    y += 1;
+    y = sep(y);
 
-    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis ' + date + '</title>'
-      + '<style>@page{size:80mm auto;margin:4mm;}*{box-sizing:border-box;margin:0;padding:0;}body{width:80mm;font-family:"Courier New",Courier,monospace;font-size:11px;background:#fff;color:#000;white-space:pre;line-height:1.6;}</style>'
-      + '</head><body>' + ticket + '</body></html>';
+    // PRODUITS
+    y = tl('PRODUITS', y, 8, true);
+    y += 1;
+    y = sepDash(y);
+    if (q1 > 0) { y = tl(n1 + ' x' + q1, y, 8); y = tr2('  @ ' + fv('devis-p1price').toFixed(2) + ' EUR/u', f(p1v), y, 7); y += 1; }
+    if (q2 > 0) { y = tl(n2 + ' x' + q2, y, 8); y = tr2('  @ ' + fv('devis-p2price').toFixed(2) + ' EUR/u', f(p2v), y, 7); y += 1; }
+    if (q3 > 0) { y = tl(n3 + ' x' + q3, y, 8); y = tr2('  @ ' + fv('devis-p3price').toFixed(2) + ' EUR/u', f(p3v), y, 7); y += 1; }
+    if (qtyTotal === 0) y = tl('Aucun produit renseigne', y, 7);
+    y = sepDash(y);
 
-    var win = window.open('', '_blank', 'width=420,height=750');
-    if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(function() { win.print(); }, 500); }
+    // PERSONNALISATION
+    y = tl('PERSONNALISATION', y, 8, true);
+    y += 1;
+    y = sepDash(y);
+    y = tr2('Type', persoLabel, y, 7);
+    y = tr2('Quantite', persoQty + ' piece(s)', y, 7);
+    y = tr2('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--', y, 7);
+    y = sepDash(y);
+
+    // RECAPITULATIF
+    y = tl('RECAPITULATIF', y, 8, true);
+    y += 1;
+    y = sepDash(y);
+    y = tr2('Quantite totale', qtyTotal + ' piece(s)', y, 7);
+    y = tr2('Sous-total', f(before), y, 7);
+    if (promo.pct > 0) {
+      y = tr2('Remise -' + promo.pct + '%', '- ' + f(discount), y, 7);
+      y = tr2('Economie realisee', f(discount), y, 7);
+    } else {
+      y = tr2('Remise', 'Aucune', y, 7);
+    }
+    y += 1;
+    y = sep(y);
+
+    // TOTAL
+    y += 1;
+    y = tr2('** TOTAL TTC **', f(total), y, 11, true);
+    y += 2;
+    y = sep(y);
+
+    // PIED
+    y = tc('FR58910338581 | 91033858100010', y, 7);
+    y += 1;
+    y = sep(y);
+    y = tc('Merci de votre confiance !', y, 8, true);
+    y = tc('www.unichef.fr', y, 7);
+
+    // Ajuster hauteur page
+    doc.internal.pageSize.height = y + 8;
+
+    doc.save('devis-unichef-' + date.replace(/\//g, '-') + '.pdf');
   });
 
   var inputs = document.querySelectorAll('#devis-p1price,#devis-p1qty,#devis-p2price,#devis-p2qty,#devis-p3price,#devis-p3qty,#devis-persoQty,#devis-name1,#devis-name2,#devis-name3');
