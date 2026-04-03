@@ -288,110 +288,95 @@ document.addEventListener('DOMContentLoaded', function() {
     var date       = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
     var heure      = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
-    // Page 80mm large, hauteur genereuse
     var W = 80;
-    var doc = new jsPDF({ unit: 'mm', format: [W, 300], orientation: 'portrait' });
-    var y = 10;
+    var H = 250;
+    var doc = new jsPDF({ unit: 'mm', format: [W, H], orientation: 'portrait' });
+    var y = 8;
     var margin = 4;
-    var center = W / 2;
+    var cx = W / 2;
 
-    function sep(y) {
-      doc.setDrawColor(180);
-      doc.setLineWidth(0.2);
-      doc.line(margin, y, W - margin, y);
-      return y + 3;
-    }
-    function sepDash(y) {
-      doc.setDrawColor(200);
-      doc.setLineWidth(0.2);
-      doc.setLineDashPattern([1, 1], 0);
+    function sep(dash) {
+      doc.setDrawColor(160);
+      doc.setLineWidth(0.3);
+      if (dash) { doc.setLineDashPattern([1,1], 0); } else { doc.setLineDashPattern([], 0); }
       doc.line(margin, y, W - margin, y);
       doc.setLineDashPattern([], 0);
-      return y + 3;
+      y += 3;
     }
-    function tc(txt, y, size, bold) {
+    function tc(txt, size, bold) {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size || 8);
-      doc.text(txt, center, y, { align: 'center' });
-      return y + (size || 8) * 0.4 + 1.5;
+      doc.setFontSize(size);
+      doc.setTextColor(0);
+      doc.text(txt, cx, y, { align: 'center' });
+      y += size * 0.38 + 1.8;
     }
-    function tl(txt, y, size, bold) {
+    function tl(txt, size, bold) {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size || 8);
+      doc.setFontSize(size);
+      doc.setTextColor(0);
       doc.text(txt, margin, y);
-      return y + (size || 8) * 0.4 + 1.5;
+      y += size * 0.38 + 1.8;
     }
-    function tr2(left, right, y, size, bold) {
+    function tr2(left, right, size, bold) {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size || 8);
+      doc.setFontSize(size);
+      doc.setTextColor(0);
       doc.text(left, margin, y);
       doc.text(right, W - margin, y, { align: 'right' });
-      return y + (size || 8) * 0.4 + 1.5;
+      y += size * 0.38 + 1.8;
     }
 
     // EN-TETE
-    y = tc('UNICHEF', y, 13, true);
-    y = tc('WECREATE', y, 8, false);
-    y = tc("7 avenue de l'Europe, 92310 France", y, 7);
-    y = tc('unichef.fr@gmail.com | 01 40 95 04 10', y, 7);
-    y = tc('www.unichef.fr', y, 7);
-    y += 2;
-    y = sep(y);
-
-    y = tc('DEVIS', y, 11, true);
-    y = tc(date + '  ' + heure, y, 7);
-    y += 1;
-    y = sep(y);
+    tc('UNICHEF', 13, true);
+    tc('WECREATE', 8, false);
+    tc("7 avenue de l'Europe, 92310", 7, false);
+    tc('unichef.fr@gmail.com | 01 40 95 04 10', 7, false);
+    tc('www.unichef.fr', 7, false);
+    y += 1; sep(false);
+    tc('DEVIS', 11, true);
+    tc(date + '  ' + heure, 7, false);
+    y += 1; sep(false);
 
     // PRODUITS
-    y = tl('PRODUITS', y, 8, true);
-    y += 1;
-    y = sepDash(y);
-    if (q1 > 0) { y = tl(n1 + ' x' + q1, y, 8); y = tr2('  @ ' + fv('devis-p1price').toFixed(2) + ' EUR/u', f(p1v), y, 7); y += 1; }
-    if (q2 > 0) { y = tl(n2 + ' x' + q2, y, 8); y = tr2('  @ ' + fv('devis-p2price').toFixed(2) + ' EUR/u', f(p2v), y, 7); y += 1; }
-    if (q3 > 0) { y = tl(n3 + ' x' + q3, y, 8); y = tr2('  @ ' + fv('devis-p3price').toFixed(2) + ' EUR/u', f(p3v), y, 7); y += 1; }
-    if (qtyTotal === 0) y = tl('Aucun produit renseigne', y, 7);
-    y = sepDash(y);
+    tl('PRODUITS', 8, true);
+    y += 1; sep(true);
+    if (q1 > 0) { tl(n1 + ' x' + q1, 8, false); tr2('  @ ' + fv('devis-p1price').toFixed(2) + ' EUR/u', f(p1v), 7, false); y += 0.5; }
+    if (q2 > 0) { tl(n2 + ' x' + q2, 8, false); tr2('  @ ' + fv('devis-p2price').toFixed(2) + ' EUR/u', f(p2v), 7, false); y += 0.5; }
+    if (q3 > 0) { tl(n3 + ' x' + q3, 8, false); tr2('  @ ' + fv('devis-p3price').toFixed(2) + ' EUR/u', f(p3v), 7, false); y += 0.5; }
+    if (qtyTotal === 0) { tl('Aucun produit renseigne', 7, false); }
+    sep(true);
 
     // PERSONNALISATION
-    y = tl('PERSONNALISATION', y, 8, true);
-    y += 1;
-    y = sepDash(y);
-    y = tr2('Type', persoLabel, y, 7);
-    y = tr2('Quantite', persoQty + ' piece(s)', y, 7);
-    y = tr2('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--', y, 7);
-    y = sepDash(y);
+    tl('PERSONNALISATION', 8, true);
+    y += 1; sep(true);
+    tr2('Type', persoLabel, 7, false);
+    tr2('Quantite', persoQty + ' piece(s)', 7, false);
+    tr2('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--', 7, false);
+    sep(true);
 
     // RECAPITULATIF
-    y = tl('RECAPITULATIF', y, 8, true);
-    y += 1;
-    y = sepDash(y);
-    y = tr2('Quantite totale', qtyTotal + ' piece(s)', y, 7);
-    y = tr2('Sous-total', f(before), y, 7);
+    tl('RECAPITULATIF', 8, true);
+    y += 1; sep(true);
+    tr2('Quantite totale', qtyTotal + ' piece(s)', 7, false);
+    tr2('Sous-total', f(before), 7, false);
     if (promo.pct > 0) {
-      y = tr2('Remise -' + promo.pct + '%', '- ' + f(discount), y, 7);
-      y = tr2('Economie realisee', f(discount), y, 7);
+      tr2('Remise -' + promo.pct + '%', '- ' + f(discount), 7, false);
+      tr2('Economie realisee', f(discount), 7, false);
     } else {
-      y = tr2('Remise', 'Aucune', y, 7);
+      tr2('Remise', 'Aucune', 7, false);
     }
-    y += 1;
-    y = sep(y);
+    y += 1; sep(false);
 
     // TOTAL
     y += 1;
-    y = tr2('** TOTAL TTC **', f(total), y, 11, true);
-    y += 2;
-    y = sep(y);
+    tr2('** TOTAL TTC **', f(total), 11, true);
+    y += 2; sep(false);
 
     // PIED
-    y = tc('FR58910338581 | 91033858100010', y, 7);
-    y += 1;
-    y = sep(y);
-    y = tc('Merci de votre confiance !', y, 8, true);
-    y = tc('www.unichef.fr', y, 7);
-
-    // Ajuster hauteur page
-    doc.internal.pageSize.height = y + 10;
+    tc('FR58910338581 | 91033858100010', 7, false);
+    y += 1; sep(false);
+    tc('Merci de votre confiance !', 8, true);
+    tc('www.unichef.fr', 7, false);
 
     // Ouvrir dans un nouvel onglet
     var pdfBlob = doc.output('blob');
