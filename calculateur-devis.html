@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Auto-resize : envoie la hauteur au parent toutes les 300ms
   function sendHeight() {
-    var h = document.getElementById('devis-main').scrollHeight + 40;
+    var h = document.getElementById('devis-main').scrollHeight + 100;
     window.parent.postMessage({ height: h }, '*');
   }
   setInterval(sendHeight, 300);
