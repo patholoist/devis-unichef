@@ -121,8 +121,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 
   <div style="margin-top:1.5rem;margin-bottom:2.5rem;text-align:center;">
-    <button class="devis-btn-print" id="devis-btn-print">🖨 Imprimer le ticket</button>
-    <p class="devis-btn-hint">S'ouvre dans un nouvel onglet — appuyez sur Imprimer</p>
+    <button class="devis-btn-print" id="devis-btn-print">🖨 Imprimer via RawBT</button>
+    <p class="devis-btn-hint">Ouvre RawBT et imprime directement sur la Zebra ZP450</p>
   </div>
 </div>
 
@@ -286,89 +286,80 @@ document.addEventListener('DOMContentLoaded', function() {
     var date  = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
     var heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
-    function row(l, r) {
-      return '<tr><td style="padding:2px 0;font-size:11px;color:#333;">' + l + '</td><td style="padding:2px 0;font-size:11px;text-align:right;font-weight:600;color:#111;">' + r + '</td></tr>';
+    // Texte brut pour RawBT (48 caracteres de large = standard thermique 80mm)
+    var W = 48;
+    function center(txt) {
+      var pad = Math.max(0, Math.floor((W - txt.length) / 2));
+      return Array(pad + 1).join(' ') + txt;
     }
-    function sep() {
-      return '<tr><td colspan="2"><hr style="border:none;border-top:1px solid #ccc;margin:4px 0;"></td></tr>';
+    function leftRight(l, r) {
+      var gap = W - l.length - r.length;
+      if (gap < 1) gap = 1;
+      return l + Array(gap + 1).join(' ') + r;
     }
-    function sepDash() {
-      return '<tr><td colspan="2"><hr style="border:none;border-top:1px dashed #ccc;margin:3px 0;"></td></tr>';
+    function sep()     { return Array(W + 1).join('-'); }
+    function sepDash() { return Array(W + 1).join('.'); }
+
+    var lines = [];
+    lines.push(center('UNICHEF'));
+    lines.push(center('WECREATE'));
+    lines.push(center("7 avenue de l'Europe, 92310"));
+    lines.push(center('unichef.fr@gmail.com'));
+    lines.push(center('07 52 05 20 49 | www.unichef.fr'));
+    lines.push(sep());
+    lines.push(center('TICKET DE CAISSE'));
+    lines.push(center(date + '  ' + heure));
+    lines.push(sep());
+
+    lines.push('PRODUITS');
+    lines.push(sepDash());
+    if (p1qty > 0) { lines.push(n1 + ' x' + p1qty); lines.push(leftRight('  @ ' + p1price.toFixed(2) + ' EUR/u', f(p1v))); }
+    if (p2qty > 0) { lines.push(n2 + ' x' + p2qty); lines.push(leftRight('  @ ' + p2price.toFixed(2) + ' EUR/u', f(p2v))); }
+    if (p3qty > 0) { lines.push(n3 + ' x' + p3qty); lines.push(leftRight('  @ ' + p3price.toFixed(2) + ' EUR/u', f(p3v))); }
+    if (qtyTotal === 0) lines.push('Aucun produit renseigne');
+    lines.push(sepDash());
+
+    lines.push('PERSONNALISATION');
+    lines.push(sepDash());
+    lines.push(leftRight('Type', persoLabel));
+    lines.push(leftRight('Quantite', persoQty + ' piece(s)'));
+    lines.push(leftRight('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--'));
+    lines.push(sepDash());
+
+    lines.push('RECAPITULATIF');
+    lines.push(sepDash());
+    lines.push(leftRight('Quantite totale', qtyTotal + ' piece(s)'));
+    lines.push(leftRight('Sous-total', f(before)));
+    if (promo.pct > 0) {
+      lines.push(leftRight('Remise -' + promo.pct + '%', '- ' + f(discount)));
+      lines.push(leftRight('Economie realisee', f(discount)));
+    } else {
+      lines.push(leftRight('Remise', 'Aucune'));
     }
-    function title(t) {
-      return '<tr><td colspan="2" style="font-size:11px;font-weight:700;padding:4px 0 2px 0;color:#111;">' + t + '</td></tr>';
-    }
+    lines.push(sep());
 
-    var prodRows = '';
-    if (p1qty > 0) prodRows += '<tr><td colspan="2" style="font-size:11px;padding:2px 0;">' + n1 + ' x' + p1qty + '</td></tr>'
-      + row('  @ ' + p1price.toFixed(2) + ' EUR/u', f(p1v));
-    if (p2qty > 0) prodRows += '<tr><td colspan="2" style="font-size:11px;padding:2px 0;">' + n2 + ' x' + p2qty + '</td></tr>'
-      + row('  @ ' + p2price.toFixed(2) + ' EUR/u', f(p2v));
-    if (p3qty > 0) prodRows += '<tr><td colspan="2" style="font-size:11px;padding:2px 0;">' + n3 + ' x' + p3qty + '</td></tr>'
-      + row('  @ ' + p3price.toFixed(2) + ' EUR/u', f(p3v));
-    if (qtyTotal === 0) prodRows = '<tr><td colspan="2" style="font-size:11px;">Aucun produit renseigne</td></tr>';
+    lines.push(leftRight('Total HT', f(totalHT)));
+    lines.push(leftRight('TVA (20%)', f(tva)));
+    lines.push(sep());
+    lines.push(leftRight('** TOTAL TTC **', f(total)));
+    lines.push(sep());
 
-    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ticket Unichef</title>'
-      + '<style>'
-      + '@page { size: 80mm auto; margin: 4mm; }'
-      + '* { box-sizing: border-box; margin: 0; padding: 0; }'
-      + 'html, body { width: 80mm; background: #fff; }'
-      + 'body { font-family: "Courier New", Courier, monospace; font-size: 11px; color: #000; }'
-      + 'table { width: 100%; border-collapse: collapse; }'
-      + '.center { text-align: center; }'
-      + '.big { font-size: 16px; font-weight: 700; }'
-      + '.med { font-size: 13px; font-weight: 700; }'
-      + '.total-line td { font-size: 14px; font-weight: 700; padding: 4px 0; }'
-      + '@media print { body { width: 100%; } }'
-      + '</style></head><body>'
+    lines.push(center('FR58910338581'));
+    lines.push(center('91033858100010'));
+    lines.push(sep());
+    lines.push(center('Merci de votre confiance !'));
+    lines.push(center('www.unichef.fr'));
+    lines.push('');
+    lines.push('');
 
-      + '<table>'
-      + '<tr><td colspan="2" class="center big" style="padding:6px 0 2px;">UNICHEF</td></tr>'
-      + '<tr><td colspan="2" class="center" style="font-size:11px;padding-bottom:2px;">WECREATE</td></tr>'
-      + '<tr><td colspan="2" class="center" style="font-size:10px;">7 avenue de l\'Europe, 92310</td></tr>'
-      + '<tr><td colspan="2" class="center" style="font-size:10px;">unichef.fr@gmail.com | 07 52 05 20 49</td></tr>'
-      + '<tr><td colspan="2" class="center" style="font-size:10px;padding-bottom:4px;">www.unichef.fr</td></tr>'
-      + sep()
-      + '<tr><td colspan="2" class="center med" style="padding:4px 0;">TICKET DE CAISSE</td></tr>'
-      + '<tr><td colspan="2" class="center" style="font-size:10px;padding-bottom:4px;">' + date + '  ' + heure + '</td></tr>'
-      + sep()
+    var ticket = lines.join('\n');
 
-      + title('PRODUITS')
-      + sepDash()
-      + prodRows
-      + sepDash()
+    // Envoyer a RawBT via intent Android
+    var encoded = encodeURIComponent(ticket);
+    var intentUrl = 'intent://print/text?text=' + encoded
+      + '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end';
 
-      + title('PERSONNALISATION')
-      + sepDash()
-      + row('Type', persoLabel)
-      + row('Quantite', persoQty + ' piece(s)')
-      + row('Sous-total personnalisation', persoTotal > 0 ? f(persoTotal) : '--')
-      + sepDash()
-
-      + title('RECAPITULATIF')
-      + sepDash()
-      + row('Quantite totale', qtyTotal + ' piece(s)')
-      + row('Sous-total', f(before))
-      + (promo.pct > 0 ? row('Remise -' + promo.pct + '%', '- ' + f(discount)) + row('Economie realisee', f(discount)) : row('Remise', 'Aucune'))
-      + sep()
-
-      + row('Total HT', f(totalHT))
-      + row('TVA (20%)', f(tva))
-      + sep()
-      + '<tr class="total-line"><td>** TOTAL TTC **</td><td style="text-align:right;">' + f(total) + '</td></tr>'
-      + sep()
-
-      + '<tr><td colspan="2" class="center" style="font-size:10px;padding:3px 0;">FR58910338581 | 91033858100010</td></tr>'
-      + sep()
-      + '<tr><td colspan="2" class="center" style="font-size:12px;font-weight:700;padding:4px 0;">Merci de votre confiance !</td></tr>'
-      + '<tr><td colspan="2" class="center" style="font-size:10px;padding-bottom:6px;">www.unichef.fr</td></tr>'
-      + '</table>'
-
-      + '<script>window.onload=function(){window.print();}<\/script>'
-      + '</body></html>';
-
-    var win = window.open('', '_blank');
-    if (win) { win.document.write(html); win.document.close(); }
+    window.location.href = intentUrl;
   });
 
   var inputs = document.querySelectorAll('#devis-p1price,#devis-p1qty,#devis-p2price,#devis-p2qty,#devis-p3price,#devis-p3qty,#devis-persoQty,#devis-name1,#devis-name2,#devis-name3');
