@@ -1,373 +1,643 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculateur de devis — Unichef</title>
+<title>Shímeí Bay Resort · 石梅湾海岸度假酒店</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+SC:wght@300;400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f6fb; color: #111; }
-.devis-wrap { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
-.devis-wrap h2 { font-size: 22px; font-weight: 500; margin-bottom: 4px; color: #111; }
-.devis-subtitle { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
-.devis-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; padding: 3px 10px; border-radius: 6px; display: inline-block; }
-.devis-s-products { color: #5a4fcf; background: #eceafe; }
-.devis-s-perso    { color: #b85c00; background: #feeedd; }
-.devis-s-remises  { color: #1a7a45; background: #e0f5ea; }
-.devis-s-recap    { color: #1a5fa8; background: #e3effe; }
-.devis-card-products { background: #f0effe; border: 1px solid #d4d0f5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
-.devis-card-perso    { background: #fff8f0; border: 1px solid #f5d9b8; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
-.devis-card-remises  { background: #f0faf4; border: 1px solid #b8e8ce; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; }
-.devis-card-recap    { background: #eef5ff; border: 1px solid #b8d4f5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-.devis-prod-row { display: grid; grid-template-columns: 1fr 110px 110px; gap: 10px; align-items: center; margin-bottom: 10px; }
-.devis-prod-row:last-child { margin-bottom: 0; }
-.devis-prod-name-input { font-size: 13px; color: #333; border: none; background: transparent; width: 100%; padding: 0; outline: none; border-bottom: 1px dashed #a09cd8; font-family: inherit; }
-.devis-col-head { font-size: 11px; font-weight: 600; color: #7a77b8; text-align: right; }
-.devis-wrap input[type=number] { width: 100%; text-align: right; font-size: 14px; border: 1px solid #d4d0f5; border-radius: 6px; padding: 6px 8px; outline: none; font-family: inherit; background: #fff; color: #111; }
-.devis-card-perso input[type=number] { border-color: #f0c898; }
-.devis-qty-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-.devis-qty-row label { font-size: 13px; color: #a06030; flex: 1; }
-.devis-qty-row input { width: 80px !important; }
-.devis-promo-badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #d4f0e2; color: #1a7a45; }
-.devis-total-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #3a5a8a; padding: 5px 0; }
-.devis-total-row-main { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 500; color: #111; padding-top: 10px; margin-top: 4px; border-top: 1px solid #b8d4f5; }
-.devis-strike { text-decoration: line-through; color: #aaa; font-size: 13px; }
-.devis-saving { color: #1a7a45; font-size: 13px; font-weight: 500; }
-.devis-tab-row { display: flex; gap: 6px; margin-bottom: 14px; }
-.devis-tab-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid #f0c898; font-size: 13px; cursor: pointer; background: #fff; color: #a06030; font-family: inherit; font-weight: 500; }
-.devis-tab-btn:hover { background: #feeedd; }
-.devis-tab-btn.devis-active { background: #f8a84b; border-color: #e07a20; color: #fff; font-weight: 600; }
-.devis-promo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.devis-promo-tile { border-radius: 8px; padding: 10px 8px; text-align: center; border: 1px solid #b8e8ce; background: #fff; }
-.devis-promo-tile .devis-ptitle { font-size: 12px; color: #2a8a5a; }
-.devis-promo-tile .devis-ppct { font-size: 16px; font-weight: 600; color: #1a5a38; margin-top: 2px; }
-.devis-promo-tile.devis-active-promo { background: #b8e8ce !important; border-color: #6dcca0 !important; }
-.devis-promo-tile.devis-active-promo .devis-ptitle { color: #0d4a28 !important; }
-.devis-promo-tile.devis-active-promo .devis-ppct { color: #0d4a28 !important; }
-.devis-btn-print { background: #5a4fcf; color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
-.devis-btn-print:hover { background: #4a3fbf; }
-.devis-btn-hint { font-size: 12px; color: #888; margin-top: 8px; }
+  :root {
+    --sand: #ebe2d3;
+    --sand-light: #f5efe4;
+    --ink: #1f2622;
+    --ink-soft: #4a544d;
+    --ocean: #2d4a48;
+    --terracotta: #b25c3e;
+    --gold: #a88654;
+    --line: rgba(31, 38, 34, 0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    color: var(--ink);
+    background: var(--sand-light);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ---------- Subtle grain texture ---------- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- Header ---------- */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    padding: 32px 6vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--sand-light);
+  }
+  .stars {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+  .brand-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  .lang {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 720px;
+    background-image:
+      linear-gradient(180deg, rgba(20,30,28,0.35) 0%, rgba(20,30,28,0.15) 40%, rgba(20,30,28,0.55) 100%),
+      url('https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=2000&q=80');
+    background-size: cover;
+    background-position: center;
+    color: var(--sand-light);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 6vw 80px;
+  }
+
+  .hero-content { max-width: 900px; }
+
+  .hero-eyebrow {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    letter-spacing: 0.5em;
+    margin-bottom: 24px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    animation: fadeUp 1s ease 0.2s both;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(48px, 8vw, 110px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+    animation: fadeUp 1.2s ease 0.4s both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: #d9c69b;
+  }
+
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(18px, 2vw, 24px);
+    max-width: 560px;
+    opacity: 0.95;
+    animation: fadeUp 1.2s ease 0.7s both;
+  }
+
+  .hero-cn {
+    margin-top: 16px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    letter-spacing: 0.3em;
+    opacity: 0.75;
+    animation: fadeUp 1.2s ease 0.9s both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--sand-light);
+    opacity: 0.7;
+    text-transform: uppercase;
+    animation: bobble 2.5s ease-in-out infinite;
+  }
+  .scroll-cue::after {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 40px;
+    background: var(--sand-light);
+    margin: 12px auto 0;
+    opacity: 0.5;
+  }
+  @keyframes bobble {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 8px); }
+  }
+
+  /* ---------- Section: Welcome ---------- */
+  .welcome {
+    padding: 140px 6vw 120px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 80px;
+    align-items: center;
+    background: var(--sand-light);
+  }
+
+  .welcome-label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: var(--terracotta);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .welcome-label::before {
+    content: '— ';
+  }
+
+  .welcome h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin-bottom: 32px;
+  }
+  .welcome h2 em { font-style: italic; color: var(--gold); }
+
+  .welcome p {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+    max-width: 540px;
+  }
+
+  .welcome p .cn {
+    font-family: 'Noto Serif SC', serif;
+    color: var(--ocean);
+  }
+
+  .welcome-image {
+    position: relative;
+    aspect-ratio: 4/5;
+    background-image: url('https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 2px;
+  }
+  .welcome-image::after {
+    content: '石梅湾';
+    position: absolute;
+    top: -36px;
+    right: -20px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 80px;
+    color: var(--terracotta);
+    opacity: 0.85;
+    line-height: 1;
+    writing-mode: vertical-rl;
+    letter-spacing: 0.1em;
+  }
+
+  /* ---------- Divider ---------- */
+  .divider {
+    text-align: center;
+    padding: 40px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    background: var(--sand);
+  }
+  .divider::before, .divider::after {
+    content: '◆';
+    margin: 0 16px;
+    font-style: normal;
+    font-size: 8px;
+    vertical-align: middle;
+  }
+
+  /* ---------- Experiences ---------- */
+  .experiences {
+    background: var(--sand);
+    padding: 100px 6vw 140px;
+  }
+  .experiences-head {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+  .experiences-head .label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    color: var(--terracotta);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .experiences-head h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 5vw, 60px);
+    line-height: 1.1;
+  }
+  .experiences-head h2 em { font-style: italic; color: var(--gold); }
+
+  .exp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .exp-card {
+    text-align: left;
+  }
+
+  .exp-img {
+    aspect-ratio: 3/4;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: transform 0.6s ease;
+  }
+  .exp-card:hover .exp-img { transform: scale(1.02); }
+
+  .exp-img.one   { background-image: url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&q=80'); }
+  .exp-img.two   { background-image: url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=80'); }
+  .exp-img.three { background-image: url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=900&q=80'); }
+
+  .exp-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--terracotta);
+    letter-spacing: 0.2em;
+    margin-bottom: 10px;
+  }
+  .exp-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .exp-card .cn-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    color: var(--ocean);
+    letter-spacing: 0.15em;
+    margin-bottom: 14px;
+  }
+  .exp-card p {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.75;
+  }
+
+  /* ---------- Quote section ---------- */
+  .quote {
+    padding: 140px 6vw;
+    text-align: center;
+    background: var(--ocean);
+    color: var(--sand-light);
+    position: relative;
+    overflow: hidden;
+  }
+  .quote::before {
+    content: '「';
+    position: absolute;
+    top: 30px; left: 8vw;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 200px;
+    color: var(--gold);
+    opacity: 0.25;
+    line-height: 1;
+  }
+  .quote::after {
+    content: '」';
+    position: absolute;
+    bottom: 30px; right: 8vw;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 200px;
+    color: var(--gold);
+    opacity: 0.25;
+    line-height: 1;
+  }
+  .quote blockquote {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(28px, 4vw, 48px);
+    line-height: 1.3;
+    max-width: 900px;
+    margin: 0 auto 32px;
+  }
+  .quote .attrib {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* ---------- Information / Visit ---------- */
+  .visit {
+    padding: 140px 6vw 100px;
+    background: var(--sand-light);
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 100px;
+    align-items: start;
+  }
+
+  .visit-image {
+    aspect-ratio: 5/6;
+    background-image: url('https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .visit-info .label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: var(--terracotta);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .visit-info .label::before { content: '— '; }
+
+  .visit-info h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.05;
+    margin-bottom: 40px;
+  }
+  .visit-info h2 em { font-style: italic; color: var(--gold); }
+
+  .info-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
+  }
+  .info-row:first-of-type { border-top: 1px solid var(--line); }
+
+  .info-key {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+  .info-key .cn {
+    display: block;
+    font-family: 'Noto Serif SC', serif;
+    font-style: normal;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--ocean);
+    margin-top: 2px;
+  }
+
+  .info-val {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .info-val .cn {
+    display: block;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    background: var(--ink);
+    color: var(--sand);
+    padding: 80px 6vw 40px;
+    text-align: center;
+  }
+  .footer-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 32px;
+    letter-spacing: 0.25em;
+    margin-bottom: 8px;
+  }
+  .footer-mark em { font-style: italic; color: var(--gold); }
+  .footer-cn {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    margin-bottom: 40px;
+  }
+  .footer-line {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 28px;
+    opacity: 0.6;
+  }
+  .footer-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    opacity: 0.6;
+    letter-spacing: 0.1em;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .top-bar { padding: 20px 5vw; }
+    .brand-mark { font-size: 16px; }
+    .stars, .lang { font-size: 11px; }
+
+    .welcome {
+      grid-template-columns: 1fr;
+      gap: 50px;
+      padding: 90px 6vw 80px;
+    }
+    .welcome-image { aspect-ratio: 4/3; order: -1; }
+    .welcome-image::after { font-size: 50px; right: -10px; top: -24px; }
+
+    .exp-grid { grid-template-columns: 1fr; gap: 60px; }
+    .exp-img { aspect-ratio: 4/3; }
+
+    .visit {
+      grid-template-columns: 1fr;
+      gap: 50px;
+      padding: 90px 6vw 80px;
+    }
+    .info-row { grid-template-columns: 110px 1fr; }
+
+    .quote { padding: 100px 6vw; }
+    .quote::before, .quote::after { font-size: 120px; }
+  }
 </style>
 </head>
 <body>
-<div class="devis-wrap">
-  <h2>Calculateur de devis</h2>
-  <p class="devis-subtitle">Produits + personnalisation broderie / flocage</p>
 
-  <div class="devis-section-title devis-s-products">Produits</div>
-  <div class="devis-card-products">
-    <div class="devis-prod-row">
-      <div></div>
-      <div class="devis-col-head">Prix unit. (€)</div>
-      <div class="devis-col-head">Quantité</div>
-    </div>
-    <div class="devis-prod-row">
-      <input class="devis-prod-name-input" id="devis-name1" type="text" value="Produit 1">
-      <input type="number" id="devis-p1price" min="0" step="0.01" placeholder="0,00">
-      <input type="number" id="devis-p1qty" min="0" step="1" placeholder="0">
-    </div>
-    <div class="devis-prod-row">
-      <input class="devis-prod-name-input" id="devis-name2" type="text" value="Produit 2">
-      <input type="number" id="devis-p2price" min="0" step="0.01" placeholder="0,00">
-      <input type="number" id="devis-p2qty" min="0" step="1" placeholder="0">
-    </div>
-    <div class="devis-prod-row">
-      <input class="devis-prod-name-input" id="devis-name3" type="text" value="Produit 3">
-      <input type="number" id="devis-p3price" min="0" step="0.01" placeholder="0,00">
-      <input type="number" id="devis-p3qty" min="0" step="1" placeholder="0">
-    </div>
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="stars">— Four Stars · 四星 —</div>
+    <div class="brand-mark">Shímeí Bay</div>
+    <div class="lang">EN · 中文</div>
   </div>
 
-  <div class="devis-section-title devis-s-perso" style="margin-top:1.5rem;">Type de personnalisation</div>
-  <div class="devis-card-perso">
-    <div class="devis-tab-row">
-      <button class="devis-tab-btn devis-active" id="devis-tab-flocage">Flocage</button>
-      <button class="devis-tab-btn" id="devis-tab-broderie">Broderie</button>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-eyebrow">Hainan · 海南 · Wanning</div>
+      <h1>Where the South China Sea<br><em>meets stone & plum.</em></h1>
+      <p class="hero-sub">A four-star coastal retreat tucked along the curve of Shimei Bay — sand underfoot, mountains at your back, the slow rhythm of tropical days.</p>
+      <p class="hero-cn">石梅湾 · 静谧海岸度假</p>
     </div>
-    <div id="devis-perso-options" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
-    <div class="devis-qty-row">
-      <label for="devis-persoQty">Quantité de personnalisations</label>
-      <input type="number" id="devis-persoQty" min="0" step="1" placeholder="0">
-    </div>
-  </div>
+    <div class="scroll-cue">Scroll · 向下</div>
+  </section>
 
-  <div class="devis-section-title devis-s-remises" style="margin-top:1.5rem;">Grille de remises</div>
-  <div class="devis-card-remises">
-    <div class="devis-promo-grid">
-      <div class="devis-promo-tile" id="devis-pt0"><div class="devis-ptitle">1 – 2 pièces</div><div class="devis-ppct">0%</div></div>
-      <div class="devis-promo-tile" id="devis-pt1"><div class="devis-ptitle">3 – 4 pièces</div><div class="devis-ppct">5%</div></div>
-      <div class="devis-promo-tile" id="devis-pt2"><div class="devis-ptitle">5 – 9 pièces</div><div class="devis-ppct">10%</div></div>
-      <div class="devis-promo-tile" id="devis-pt3"><div class="devis-ptitle">10 – 29 pièces</div><div class="devis-ppct">15%</div></div>
-      <div class="devis-promo-tile" id="devis-pt4" style="grid-column:1/-1;"><div class="devis-ptitle">30+ pièces</div><div class="devis-ppct">20%</div></div>
+  <!-- Welcome -->
+  <section class="welcome">
+    <div class="welcome-text">
+      <div class="welcome-label">A Quiet Welcome · 欢迎</div>
+      <h2>An island of <em>warm light</em> & long afternoons.</h2>
+      <p>Shímeí Bay Resort sits on one of Hainan's most protected coastlines — a crescent of soft sand backed by emerald hills, where wild plum trees give the bay its name (<span class="cn">石梅</span>, "stone plum").</p>
+      <p>Forty-two suites and seaview villas, an open-air spa, two restaurants serving Hainanese and Cantonese coastal cuisine, and a swimming pool drawn against the horizon. Days here move slowly, on purpose.</p>
     </div>
-  </div>
+    <div class="welcome-image"></div>
+  </section>
 
-  <div class="devis-section-title devis-s-recap" style="margin-top:1.5rem;">Récapitulatif</div>
-  <div class="devis-card-recap">
-    <div class="devis-total-row"><span id="devis-label-p1">Produit 1</span><span id="devis-sub-p1">—</span></div>
-    <div class="devis-total-row"><span id="devis-label-p2">Produit 2</span><span id="devis-sub-p2">—</span></div>
-    <div class="devis-total-row"><span id="devis-label-p3">Produit 3</span><span id="devis-sub-p3">—</span></div>
-    <div class="devis-total-row"><span>Personnalisation</span><span id="devis-sub-perso">—</span></div>
-    <div class="devis-total-row"><span>Quantité totale</span><span id="devis-qty-total">—</span></div>
-    <div class="devis-total-row"><span id="devis-promo-label">Remise</span><span id="devis-promo-val">—</span></div>
-    <div class="devis-total-row-main">
-      <span>Total TTC</span>
-      <div style="text-align:right;">
-        <div class="devis-strike" id="devis-before-discount"></div>
-        <div style="font-size:20px;font-weight:500;" id="devis-final-total">—</div>
-        <div class="devis-saving" id="devis-saving-line"></div>
+  <div class="divider">石 · Stay a while · 梅</div>
+
+  <!-- Experiences -->
+  <section class="experiences">
+    <div class="experiences-head">
+      <div class="label">The Resort · 度假体验</div>
+      <h2>Three ways to <em>spend the day.</em></h2>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-img one"></div>
+        <div class="exp-num">— I —</div>
+        <h3>The Bay</h3>
+        <div class="cn-title">海湾 · The Shore</div>
+        <p>Two kilometres of private beach, hammocks strung between coconut palms, and warm shallow waters perfect for swimming from sunrise to dusk.</p>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-img two"></div>
+        <div class="exp-num">— II —</div>
+        <h3>The Pool</h3>
+        <div class="cn-title">无边泳池 · Infinity</div>
+        <p>An infinity pool that dissolves into the South China Sea, surrounded by teak loungers, citrus gardens, and a poolside bar serving fresh coconut and lychee cocktails.</p>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-img three"></div>
+        <div class="exp-num">— III —</div>
+        <h3>The Suites</h3>
+        <div class="cn-title">海景套房 · Seaview Suites</div>
+        <p>Spacious rooms with private balconies, rattan furniture, hand-thrown ceramics, and floor-to-ceiling windows opening onto the bay.</p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div style="margin-top:1.5rem;margin-bottom:2.5rem;text-align:center;">
-    <button class="devis-btn-print" id="devis-btn-print">🖨 Imprimer via RawBT</button>
-    <p class="devis-btn-hint">Ouvre RawBT et imprime directement sur la Zebra ZP450</p>
-  </div>
-</div>
+  <!-- Quote -->
+  <section class="quote">
+    <blockquote>The sea here remembers a slower kind of time — and offers it back to you, one tide at a time.</blockquote>
+    <div class="attrib">A Letter from the Bay · 来自海岸的信</div>
+  </section>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var FLOCAGE = [
-    { name: 'Logo Coeur', price: 6 },
-    { name: 'Logo Centre', price: 8 },
-    { name: 'Logo anti-coeur', price: 6 },
-    { name: 'Logo Dos', price: 8 },
-    { name: 'Une ligne', price: 4 },
-    { name: 'Deux lignes', price: 6 }
-  ];
-  var BRODERIE = [
-    { name: 'Une ligne', price: 6 },
-    { name: 'Deux lignes', price: 8 },
-    { name: 'Logo Coeur', price: 8 },
-    { name: 'Logo Centre', price: 10 },
-    { name: 'Logo anti-Coeur', price: 8 }
-  ];
-  var PROMO = [
-    { min: 1,  max: 2,      pct: 0,  tile: 'devis-pt0' },
-    { min: 3,  max: 4,      pct: 5,  tile: 'devis-pt1' },
-    { min: 5,  max: 9,      pct: 10, tile: 'devis-pt2' },
-    { min: 10, max: 29,     pct: 15, tile: 'devis-pt3' },
-    { min: 30, max: 999999, pct: 20, tile: 'devis-pt4' }
-  ];
+  <!-- Visit -->
+  <section class="visit">
+    <div class="visit-image"></div>
+    <div class="visit-info">
+      <div class="label">Plan Your Stay · 入住信息</div>
+      <h2>Practical <em>matters</em>, gracefully kept.</h2>
 
-  var currentTab = 'flocage';
-  var selectedPerso = null;
+      <div class="info-row">
+        <div class="info-key">Location<span class="cn">位置</span></div>
+        <div class="info-val">
+          Shimei Bay Tourism Resort<br>
+          Wanning, Hainan, China
+          <span class="cn">中国 · 海南 · 万宁 · 石梅湾旅游度假区</span>
+        </div>
+      </div>
 
-  function g(id)  { return document.getElementById(id); }
-  function fv(id) { return parseFloat(g(id).value) || 0; }
-  function iv(id) { return parseInt(g(id).value)   || 0; }
-  function fmt(n) { return n.toFixed(2).replace('.', ',') + ' EUR'; }
+      <div class="info-row">
+        <div class="info-key">Check-in<span class="cn">入住</span></div>
+        <div class="info-val">From 15:00<span class="cn">下午三时起</span></div>
+      </div>
 
-  function getPromo(qty) {
-    for (var i = 0; i < PROMO.length; i++) {
-      if (qty >= PROMO[i].min && qty <= PROMO[i].max) return PROMO[i];
-    }
-    return PROMO[0];
-  }
+      <div class="info-row">
+        <div class="info-key">Check-out<span class="cn">退房</span></div>
+        <div class="info-val">By 12:00<span class="cn">中午十二时前</span></div>
+      </div>
 
-  function renderOptions() {
-    var list = currentTab === 'flocage' ? FLOCAGE : BRODERIE;
-    var container = g('devis-perso-options');
-    container.innerHTML = '';
-    for (var i = 0; i < list.length; i++) {
-      (function(idx) {
-        var o = list[idx];
-        var sel = selectedPerso === idx;
-        var div = document.createElement('div');
-        div.style.cssText = 'border:' + (sel ? '2px solid #e07a20' : '1px solid #f0c898') + ';border-radius:8px;padding:10px 12px;cursor:pointer;background:' + (sel ? '#fddcb0' : '#fffaf4') + ';box-sizing:border-box;margin:0;';
-        div.setAttribute('data-idx', idx);
-        var nameEl = document.createElement('p');
-        nameEl.style.cssText = 'font-size:13px;font-weight:500;color:' + (sel ? '#7a3a00' : '#5a3000') + ';margin:0;padding:0;line-height:1.4;font-family:inherit;';
-        nameEl.textContent = (currentTab === 'flocage' ? 'Flocage' : 'Broderie') + ' - ' + o.name;
-        var priceEl = document.createElement('p');
-        priceEl.style.cssText = 'font-size:12px;color:' + (sel ? '#a05010' : '#b07040') + ';margin:3px 0 0 0;padding:0;line-height:1.4;font-family:inherit;';
-        priceEl.textContent = o.price.toFixed(2).replace('.', ',') + ' EUR / piece';
-        div.appendChild(nameEl);
-        div.appendChild(priceEl);
-        container.appendChild(div);
-      })(i);
-    }
-  }
+      <div class="info-row">
+        <div class="info-key">Reservations<span class="cn">预订</span></div>
+        <div class="info-val">+86 898 6252 8888<span class="cn">海南 · 全日接待</span></div>
+      </div>
 
-  g('devis-perso-options').addEventListener('click', function(e) {
-    var t = e.target;
-    while (t && t !== this) {
-      if (t.hasAttribute('data-idx')) {
-        selectedPerso = parseInt(t.getAttribute('data-idx'), 10);
-        renderOptions(); calc(); return;
-      }
-      t = t.parentNode;
-    }
-  });
+      <div class="info-row">
+        <div class="info-key">Standing<span class="cn">星级</span></div>
+        <div class="info-val">Four-Star Beach Resort<span class="cn">四星级海岸度假酒店</span></div>
+      </div>
+    </div>
+  </section>
 
-  g('devis-tab-flocage').addEventListener('click', function() {
-    if (currentTab === 'flocage') return;
-    currentTab = 'flocage'; selectedPerso = null;
-    g('devis-tab-flocage').className = 'devis-tab-btn devis-active';
-    g('devis-tab-broderie').className = 'devis-tab-btn';
-    renderOptions(); calc();
-  });
+  <!-- Footer -->
+  <footer>
+    <div class="footer-mark">SHÍMEÍ <em>BAY</em></div>
+    <div class="footer-cn">石 梅 湾</div>
+    <div class="footer-line"></div>
+    <div class="footer-text">A quiet coast, kept gently. — 静守一方海岸</div>
+  </footer>
 
-  g('devis-tab-broderie').addEventListener('click', function() {
-    if (currentTab === 'broderie') return;
-    currentTab = 'broderie'; selectedPerso = null;
-    g('devis-tab-flocage').className = 'devis-tab-btn';
-    g('devis-tab-broderie').className = 'devis-tab-btn devis-active';
-    renderOptions(); calc();
-  });
-
-  function calc() {
-    var p1 = fv('devis-p1price') * iv('devis-p1qty');
-    var p2 = fv('devis-p2price') * iv('devis-p2qty');
-    var p3 = fv('devis-p3price') * iv('devis-p3qty');
-    var qtyTotal   = iv('devis-p1qty') + iv('devis-p2qty') + iv('devis-p3qty');
-    var persoQty   = iv('devis-persoQty');
-    var list       = currentTab === 'flocage' ? FLOCAGE : BRODERIE;
-    var persoPrice = selectedPerso !== null ? list[selectedPerso].price : 0;
-    var persoTotal = persoPrice * persoQty;
-    var before     = p1 + p2 + p3 + persoTotal;
-    var promo      = getPromo(qtyTotal);
-    var discount   = before * promo.pct / 100;
-    var total      = before - discount;
-
-    PROMO.forEach(function(p) {
-      var el = g(p.tile);
-      if (!el) return;
-      if (qtyTotal > 0 && p.tile === promo.tile) el.classList.add('devis-active-promo');
-      else el.classList.remove('devis-active-promo');
-    });
-
-    var names = [g('devis-name1').value||'Produit 1', g('devis-name2').value||'Produit 2', g('devis-name3').value||'Produit 3'];
-    var subs  = [p1, p2, p3];
-    ['p1','p2','p3'].forEach(function(k, i) {
-      g('devis-label-' + k).textContent = names[i];
-      g('devis-sub-'   + k).textContent = subs[i] > 0 ? fmt(subs[i]) : '\u2014';
-    });
-
-    g('devis-sub-perso').textContent = persoTotal > 0 ? fmt(persoTotal) : '\u2014';
-    g('devis-qty-total').textContent = qtyTotal > 0 ? qtyTotal + ' piece(s)' : '\u2014';
-
-    if (promo.pct > 0) {
-      g('devis-promo-label').innerHTML = 'Remise <span class="devis-promo-badge">-' + promo.pct + '%</span>';
-      g('devis-promo-val').textContent = '- ' + fmt(discount);
-      g('devis-before-discount').textContent = fmt(before);
-      g('devis-saving-line').textContent = 'Economie : ' + fmt(discount);
-    } else {
-      g('devis-promo-label').innerHTML = 'Remise';
-      g('devis-promo-val').textContent = qtyTotal > 0 ? 'Aucune' : '\u2014';
-      g('devis-before-discount').textContent = '';
-      g('devis-saving-line').textContent = '';
-    }
-    g('devis-final-total').textContent = before > 0 ? fmt(total) : '\u2014';
-  }
-
-  g('devis-btn-print').addEventListener('click', function() {
-    var p1price = fv('devis-p1price'), p1qty = iv('devis-p1qty');
-    var p2price = fv('devis-p2price'), p2qty = iv('devis-p2qty');
-    var p3price = fv('devis-p3price'), p3qty = iv('devis-p3qty');
-    var p1v = p1price * p1qty, p2v = p2price * p2qty, p3v = p3price * p3qty;
-    var n1 = g('devis-name1').value || 'Produit 1';
-    var n2 = g('devis-name2').value || 'Produit 2';
-    var n3 = g('devis-name3').value || 'Produit 3';
-    var qtyTotal   = p1qty + p2qty + p3qty;
-    var persoQty   = iv('devis-persoQty');
-    var list       = currentTab === 'flocage' ? FLOCAGE : BRODERIE;
-    var persoPrice = selectedPerso !== null ? list[selectedPerso].price : 0;
-    var persoLabel = selectedPerso !== null ? (currentTab === 'flocage' ? 'Flocage' : 'Broderie') + ' - ' + list[selectedPerso].name : 'Non selectionne';
-    var persoTotal = persoPrice * persoQty;
-    var before     = p1v + p2v + p3v + persoTotal;
-    var promo      = getPromo(qtyTotal);
-    var discount   = before * promo.pct / 100;
-    var total      = before - discount;
-    var totalHT    = total / 1.20;
-    var tva        = total - totalHT;
-    var f = function(n) { return n.toFixed(2) + ' EUR'; };
-    var date  = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
-    var heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-
-    // Texte brut pour RawBT (48 caracteres de large = standard thermique 80mm)
-    var W = 48;
-    function center(txt) {
-      var pad = Math.max(0, Math.floor((W - txt.length) / 2));
-      return Array(pad + 1).join(' ') + txt;
-    }
-    function leftRight(l, r) {
-      var gap = W - l.length - r.length;
-      if (gap < 1) gap = 1;
-      return l + Array(gap + 1).join(' ') + r;
-    }
-    function sep()     { return Array(W + 1).join('-'); }
-    function sepDash() { return Array(W + 1).join('.'); }
-
-    var lines = [];
-    lines.push(center('UNICHEF'));
-    lines.push(center('WECREATE'));
-    lines.push(center("7 avenue de l'Europe, 92310"));
-    lines.push(center('unichef.fr@gmail.com'));
-    lines.push(center('07 52 05 20 49 | www.unichef.fr'));
-    lines.push(sep());
-    lines.push(center('TICKET DE CAISSE'));
-    lines.push(center(date + '  ' + heure));
-    lines.push(sep());
-
-    lines.push('PRODUITS');
-    lines.push(sepDash());
-    if (p1qty > 0) { lines.push(n1 + ' x' + p1qty); lines.push(leftRight('  @ ' + p1price.toFixed(2) + ' EUR/u', f(p1v))); }
-    if (p2qty > 0) { lines.push(n2 + ' x' + p2qty); lines.push(leftRight('  @ ' + p2price.toFixed(2) + ' EUR/u', f(p2v))); }
-    if (p3qty > 0) { lines.push(n3 + ' x' + p3qty); lines.push(leftRight('  @ ' + p3price.toFixed(2) + ' EUR/u', f(p3v))); }
-    if (qtyTotal === 0) lines.push('Aucun produit renseigne');
-    lines.push(sepDash());
-
-    lines.push('PERSONNALISATION');
-    lines.push(sepDash());
-    lines.push(leftRight('Type', persoLabel));
-    lines.push(leftRight('Quantite', persoQty + ' piece(s)'));
-    lines.push(leftRight('Sous-total perso', persoTotal > 0 ? f(persoTotal) : '--'));
-    lines.push(sepDash());
-
-    lines.push('RECAPITULATIF');
-    lines.push(sepDash());
-    lines.push(leftRight('Quantite totale', qtyTotal + ' piece(s)'));
-    lines.push(leftRight('Sous-total', f(before)));
-    if (promo.pct > 0) {
-      lines.push(leftRight('Remise -' + promo.pct + '%', '- ' + f(discount)));
-      lines.push(leftRight('Economie realisee', f(discount)));
-    } else {
-      lines.push(leftRight('Remise', 'Aucune'));
-    }
-    lines.push(sep());
-
-    lines.push(leftRight('Total HT', f(totalHT)));
-    lines.push(leftRight('TVA (20%)', f(tva)));
-    lines.push(sep());
-    lines.push(leftRight('** TOTAL TTC **', f(total)));
-    lines.push(sep());
-
-    lines.push(center('FR58910338581'));
-    lines.push(center('91033858100010'));
-    lines.push(sep());
-    lines.push(center('Merci de votre confiance !'));
-    lines.push(center('www.unichef.fr'));
-    lines.push('');
-    lines.push('');
-
-    var ticket = lines.join('\n');
-
-    // Envoyer a RawBT via intent Android
-    var encoded = encodeURIComponent(ticket);
-    var intentUrl = 'intent://print/text?text=' + encoded
-      + '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end';
-
-    window.location.href = intentUrl;
-  });
-
-  var inputs = document.querySelectorAll('#devis-p1price,#devis-p1qty,#devis-p2price,#devis-p2qty,#devis-p3price,#devis-p3qty,#devis-persoQty,#devis-name1,#devis-name2,#devis-name3');
-  for (var i = 0; i < inputs.length; i++) inputs[i].addEventListener('input', calc);
-
-  renderOptions();
-  calc();
-});
-</script>
 </body>
 </html>
